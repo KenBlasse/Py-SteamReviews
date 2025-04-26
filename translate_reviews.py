@@ -1,8 +1,8 @@
 import pandas as pd
-# nicht die beste Übersetzung, aber immerhin verständlich
 from deep_translator import GoogleTranslator
 import os
 import re
+import time
 
 # Ordner definieren
 input_folder = "originals"
@@ -11,61 +11,95 @@ output_folder = "translations"
 # Falls Ausgabefolder noch nicht existiert, erstellen
 os.makedirs(output_folder, exist_ok=True)
 
+#Statistik
+start_time = time.time()
+reviewsum = 0
 
 # Alle Dateien im Originals-Ordner durchgehen
 for filename in os.listdir(input_folder):
-    # nur .csv Dateien werden verarbeitet 
     if filename.endswith(".csv"):
-        print(f"Verarbeite Datei: {filename}")
-        
+        print(f"🔵 Verarbeite Datei: {filename}")
+
         input_path = os.path.join(input_folder, filename)
         output_path = os.path.join(output_folder, "translated_" + filename)
-        
-        # Nur bestimmte Spalten einlesen
-        df = pd.read_csv(input_path, usecols=["PlayTimeTotal", "Recommended", "Timestamp Created","ReviewText"])
-        # größe der Datei für Übersicht
+
+        df = pd.read_csv(input_path, usecols=["PlayTimeTotal", "Recommended", "Timestamp Created", "ReviewText"])
         total_reviews = len(df)
-        
-        #HTML-Tags entfernen
+
+        # Resümee-Zähler initialisieren
+        translated_reviews = 0
+        skipped_reviews = 0
+        errors = 0
+    
         def clean_html(raw_text):
-            cleanr = re.compile("<.*?>")
-            clean_text = re.sub(cleanr, "", raw_text)
-            return clean_text
-        
-        # Zusatz für tradiotionelles Chinesisch
+            cleanr = re.compile('<.*?>')
+            cleaned_text = re.sub(cleanr, '', raw_text)
+            bbcode = re.compile(r'\[.*?\]')
+            cleaned_text = re.sub(bbcode, '', cleaned_text)
+            return cleaned_text
+
         if "tchinese" in filename.lower():
             source_language = "zh-TW"
         else:
             source_language = "auto"
 
-        # Übersetzte Reviews hinzufügen
         def translate_text(text, index):
+            global translated_reviews, skipped_reviews, errors, reviewsum
+
+            reviewsum +=1
+
             if not isinstance(text, str) or text.strip() == "":
                 print(f"⚠️ Überspringe Review {index + 1}: Kein Text vorhanden.")
+                skipped_reviews += 1
                 return ""
-        
+
             try:
                 cleaned_text = clean_html(text)
+
+                if not cleaned_text.strip():
+                    print(f"⚠️ Überspringe Review {index + 1}: Nach Cleaning leer.")
+                    skipped_reviews += 1
+                    return ""
+
+                if len(cleaned_text) > 4500:
+                    print(f"⚠️ Review {index + 1} ist zu lang ({len(cleaned_text)} Zeichen). Text wird abgeschnitten.")
+                    cleaned_text = cleaned_text[:4500]
+
+                if len(cleaned_text) > 5000:
+                    print(f"⚠️ Review {index + 1}: Selbst nach Kürzen zu lang. Überspringe.")
+                    skipped_reviews += 1
+                    return ""
+
                 result = GoogleTranslator(source=source_language, target='de').translate(cleaned_text)
-                if result:
-                    print(f"✅ Review {index+1} von {total_reviews} übersetzt: {text[:15]}... ->{result[:15]}...")
-                else:
-                    print(f"⚠️ Überspringe Review {index+1} von {total_reviews}: Keine Übersetzung erhalten.")
-                    result = ""
+
+                print(f"✅ Review {index + 1} von {total_reviews} übersetzt.")
+                translated_reviews += 1
                 return result
-            
+
             except Exception as e:
                 print(f"⚠️ Fehler bei Review {index+1}: {e}")
+                errors += 1
                 return ""
-        
+
         df["TranslatedReview"] = [
             translate_text(row["ReviewText"], idx) if pd.notna(row["ReviewText"]) else ""
             for idx, row in df.iterrows()
         ]
-        # entfernen des original Reviews
+
         df = df.drop(columns=["ReviewText"])
-        # Neue Datei speichern
+
         df.to_csv(output_path, index=False)
         print(f"✅ Übersetzt und gespeichert: {output_path}")
 
-print("✅ Alle Dateien verarbeitet!")
+        # Nach jeder Datei Resümee ausgeben
+        print("\n📋 Resümee für Datei:", filename)
+        print(f"   - Reviews gesamt: {total_reviews}")
+        print(f"   - Erfolgreich übersetzt: {translated_reviews}")
+        print(f"   - Übersprungen: {skipped_reviews}")
+        print(f"   - Fehler während Übersetzung: {errors}\n")
+    
+
+end_time = time.time()
+duration = end_time - start_time
+
+print(f"\n🎉 Alle Dateien verarbeitet! Gesamtreviews: {reviewsum}, Gesamtdauer: {round(duration, 2)} Sekunden")
