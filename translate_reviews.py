@@ -14,6 +14,8 @@ os.makedirs(output_folder, exist_ok=True)
 #Statistik
 start_time = time.time()
 reviewsum = 0
+recommended = 0
+not_recommended = 0
 
 # Alle Dateien im Originals-Ordner durchgehen
 for filename in os.listdir(input_folder):
@@ -23,13 +25,14 @@ for filename in os.listdir(input_folder):
         input_path = os.path.join(input_folder, filename)
         output_path = os.path.join(output_folder, "translated_" + filename)
 
-        df = pd.read_csv(input_path, usecols=["PlayTimeTotal", "Recommended", "Timestamp Created", "ReviewText"])
+        df = pd.read_csv(input_path, usecols=["PlayTimeTotal", "Recommended", "Timestamp Created", "ReviewText", "Recommended"])
         total_reviews = len(df)
 
         # Resümee-Zähler initialisieren
         translated_reviews = 0
         skipped_reviews = 0
         errors = 0
+        
     
         def clean_html(raw_text):
             cleanr = re.compile('<.*?>')
@@ -43,8 +46,10 @@ for filename in os.listdir(input_folder):
         else:
             source_language = "auto"
 
+        
+
         def translate_text(text, index):
-            global translated_reviews, skipped_reviews, errors, reviewsum
+            global translated_reviews, skipped_reviews, errors, reviewsum, recommended
 
             reviewsum +=1
 
@@ -61,9 +66,9 @@ for filename in os.listdir(input_folder):
                     skipped_reviews += 1
                     return ""
 
-                if len(cleaned_text) > 4500:
+                if len(cleaned_text) > 4999:
                     print(f"⚠️ Review {index + 1} ist zu lang ({len(cleaned_text)} Zeichen). Text wird abgeschnitten.")
-                    cleaned_text = cleaned_text[:4500]
+                    cleaned_text = cleaned_text[:4999]
 
                 if len(cleaned_text) > 5000:
                     print(f"⚠️ Review {index + 1}: Selbst nach Kürzen zu lang. Überspringe.")
@@ -86,6 +91,15 @@ for filename in os.listdir(input_folder):
             for idx, row in df.iterrows()
         ]
 
+        
+        for index, row in df.iterrows():
+            if row["Recommended"]:
+                recommended += 1
+            else:
+                not_recommended += 1
+
+
+        df = df.drop(columns=["Recommended"])
         df = df.drop(columns=["ReviewText"])
 
         df.to_csv(output_path, index=False)
@@ -97,9 +111,11 @@ for filename in os.listdir(input_folder):
         print(f"   - Erfolgreich übersetzt: {translated_reviews}")
         print(f"   - Übersprungen: {skipped_reviews}")
         print(f"   - Fehler während Übersetzung: {errors}\n")
+        
     
 
 end_time = time.time()
 duration = end_time - start_time
 
 print(f"\n🎉 Alle Dateien verarbeitet! Gesamtreviews: {reviewsum}, Gesamtdauer: {round(duration, 2)} Sekunden")
+print(f"     Empfohlen: {recommended}, nicht empfohlen: {not_recommended}")
