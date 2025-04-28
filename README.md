@@ -38,7 +38,7 @@ pip install pandas deepl googletrans python-dotenv
 
 1. Create a .env file and add your DeepL API key:
 
-```.env
+```env
 DEEPL_API_KEY=your_api_key_here
 ```
 
