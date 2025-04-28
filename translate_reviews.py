@@ -1,5 +1,6 @@
 import pandas as pd
 from deep_translator import GoogleTranslator
+from googletrans import Translator
 import os
 import re
 import time
@@ -14,8 +15,8 @@ os.makedirs(output_folder, exist_ok=True)
 #Statistik
 start_time = time.time()
 reviewsum = 0
-recommended = 0
-not_recommended = 0
+total_recommended = 0
+total_not_recommended = 0
 
 # Alle Dateien im Originals-Ordner durchgehen
 for filename in os.listdir(input_folder):
@@ -32,6 +33,8 @@ for filename in os.listdir(input_folder):
         translated_reviews = 0
         skipped_reviews = 0
         errors = 0
+        recommended = 0
+        not_recommended = 0
         
     
         def clean_html(raw_text):
@@ -49,7 +52,9 @@ for filename in os.listdir(input_folder):
         
 
         def translate_text(text, index):
-            global translated_reviews, skipped_reviews, errors, reviewsum, recommended
+            global translated_reviews, skipped_reviews, errors, reviewsum, recommended, not_recommended
+
+            translator = Translator()
 
             reviewsum +=1
 
@@ -75,6 +80,13 @@ for filename in os.listdir(input_folder):
                     skipped_reviews += 1
                     return ""
 
+                # Hier: Sprache erkennen und deutsch überspringen
+                detected_lang = translator.detect(cleaned_text).lang
+                if detected_lang == 'de':
+                    print(f"⚠️ Überspringe Review {index + 1}: Bereits Deutsch.")
+                    skipped_reviews += 1
+                    return cleaned_text
+
                 result = GoogleTranslator(source=source_language, target='de').translate(cleaned_text)
 
                 print(f"✅ Review {index + 1} von {total_reviews} übersetzt.")
@@ -94,10 +106,11 @@ for filename in os.listdir(input_folder):
         
         for index, row in df.iterrows():
             if row["Recommended"]:
+                total_recommended += 1
                 recommended += 1
             else:
+                total_not_recommended += 1
                 not_recommended += 1
-
 
         df = df.drop(columns=["Recommended"])
         df = df.drop(columns=["ReviewText"])
@@ -110,7 +123,9 @@ for filename in os.listdir(input_folder):
         print(f"   - Reviews gesamt: {total_reviews}")
         print(f"   - Erfolgreich übersetzt: {translated_reviews}")
         print(f"   - Übersprungen: {skipped_reviews}")
-        print(f"   - Fehler während Übersetzung: {errors}\n")
+        print(f"   - Fehler während Übersetzung: {errors}")
+        print(f"   - Empfohlen: {recommended}")
+        print(f"   - Nicht empfohlen: {not_recommended}\n")
         
     
 
@@ -118,4 +133,4 @@ end_time = time.time()
 duration = end_time - start_time
 
 print(f"\n🎉 Alle Dateien verarbeitet! Gesamtreviews: {reviewsum}, Gesamtdauer: {round(duration, 2)} Sekunden")
-print(f"     Empfohlen: {recommended}, nicht empfohlen: {not_recommended}")
+print(f"     Empfohlen: {total_recommended}, nicht empfohlen: {total_not_recommended}")
