@@ -28,3 +28,26 @@ Install the required packages using:
 
 ```bash
 pip install pandas deepl googletrans python-dotenv
+```
+
+Usage
+
+Create a .env file and add your DeepL API key:
+
+DEEPL_API_KEY=your_api_key_here
+
+Place your CSV files with Steam reviews inside the originals/ folder.
+
+Run the script:
+
+python translate_reviews.py
+The translated files will be saved into the translations/ folder.
+A detailed log file (translation_log.txt) will also be generated automatically.
+
+Future Improvements:
+
+Direct Steam review fetching via the Steam API
+
+Web interface for easier interaction
+
+Support for multiple target languages
