@@ -55,13 +55,15 @@ python translate_reviews.py
 
 3. Enter a valid Steam App ID (e.g., 730 for CS:GO)
 
-4. Choose how many reviews to fetch (all or a number)
+![Py Steam Reviews Start](.assets/py_steam_review_start.PNG)
 
-5. Decide whether to translate and/or save the result
+5. Choose how many reviews to fetch (all or a number)
 
-6. A .csv file will be saved in the /translations/ folder (if selected)
+6. Decide whether to translate and/or save the result
 
-7. A logfile (translation_log.txt) will track your session
+7. A .csv file will be saved in the /translations/ folder (if selected)
+
+8. A logfile (translation_log.txt) will track your session
 
 The translated files will be saved into the translations/ folder.
 A detailed log file (translation_log.txt) will also be generated automatically.
