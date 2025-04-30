@@ -1,6 +1,6 @@
 # Py-SteamReviews
 
-🛠️ A Python tool to automatically translate and analyze Steam reviews from CSV files.
+🛠️ A Python tool to automatically get, translate and analyze Steam reviews.
 
 ---
 
