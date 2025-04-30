@@ -20,8 +20,8 @@ def main():
         try:
             max_reviews = int(limit_input)
         except ValueError:
-            print("Invalid input. 100 reviews will be loaded.")
-            max_reviews = 100
+            print("Invalid input. 10 reviews will be loaded.")
+            max_reviews = 10
 
     reviews = fetch_reviews_from_api(game_id, max_reviews=max_reviews)
 
