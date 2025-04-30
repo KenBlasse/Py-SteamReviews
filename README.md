@@ -55,7 +55,7 @@ python translate_reviews.py
 
 3. Enter a valid Steam App ID (e.g., 730 for CS:GO)
 
-![Py Steam Reviews Start](.assets/py_steam_review_start.PNG)
+![Py Steam Reviews Start](assets/py_steam_review_start.PNG)
 
 5. Choose how many reviews to fetch (all or a number)
 
