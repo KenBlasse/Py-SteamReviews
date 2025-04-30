@@ -8,7 +8,7 @@
 
 - Input for a specific Steam game ID
 - Automatic download of all available reviews via the Steam API
-- Optional review limit (`all` or custom number)
+- Optional review limit (`all` or custom number), invalid input will set Review to 100!
 - Language detection via `langdetect` to skip German reviews
 - Translation via DeepL (DeepL API Key needed)
 - Cleans HTML and BBCode from reviews before processing
