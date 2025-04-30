@@ -10,7 +10,7 @@
 - Automatic download of all available reviews via the Steam API
 - Optional review limit (`all` or custom number), invalid input will set review limit to 100!
 - Language detection via `langdetect` to skip German reviews
-- Translation via DeepL (DeepL API Key needed)
+- Translation via DeepL (DeepL API Key needed, Limit: 500k characters/month)
 - Cleans HTML and BBCode from reviews before processing
 - Optional CSV export of translated reviews
 - Colored and stylized terminal output (ASCII banner + loading bar)
@@ -27,7 +27,7 @@
   - `requests`
   - `deep_translator`
   - `langdetect`
-  - `python-dotenv` (optional if you use DeepL)
+  - `python-dotenv`
 
 ---
 
