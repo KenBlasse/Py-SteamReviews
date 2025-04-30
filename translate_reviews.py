@@ -1,168 +1,92 @@
-import pandas as pd
-from googletrans import Translator as GoogleTranslator
-import deepl
-import os
-import re
+# translate_reviews.py
+from banner_utils import print_banner
+from steam_api_utils import fetch_reviews_from_api
+from translator import translate_text
+from logger_utils import init_logfile, append_log
+
 import time
-from dotenv import load_dotenv
+import pandas as pd
+def main():
+    print_banner()
+    
+    init_logfile()
 
-logfile_path = "translation_log.txt"
+    game_id = input("🎮 Input game app ID: ").strip()
 
-with open(logfile_path, "w", encoding="utf-8") as logfile:
-    logfile.write(f"Übersetzungs-Log gestartet am {time.strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+    limit_input = input("Amount of Reviews (all or number): ").strip()
+    if limit_input == "all":
+        max_reviews = None
+    else:
+        try:
+            max_reviews = int(limit_input)
+        except ValueError:
+            print("Invalid input. 100 reviews will be loaded.")
+            max_reviews = 100
 
-load_dotenv()
+    reviews = fetch_reviews_from_api(game_id, max_reviews=max_reviews)
 
-# 💬 DeepL API-Key hier einfügen
-DEEPL_API_KEY = os.getenv("DEEPL_API_KEY")
+    if not reviews:
+        print("⚠️  No reviews found.")
+        return
 
-# DeepL Übersetzer initialisieren
-deepl_translator = deepl.Translator(DEEPL_API_KEY)
+    for i, review in enumerate(reviews[:5], 1):
+        print(f"Review {i}: {review['review'][:200]}...\n")
 
-# Google Übersetzer nur für Sprachenerkennung
-google_translator = GoogleTranslator()
+    if input("🔁 Translate now? (y/n): ").lower() != "y":
+        print("❌ Aborted.")
+        return
+    
+    start_time = time.time()
+    translated_count = 0
+    skipped_count = 0
 
-# Ordner definieren
-input_folder = "originals"
-output_folder = "translations"
+    results = []
+    for i, review in enumerate(reviews, 1):
+        text = review.get("review", "")
+        translated, skipped = translate_text(text, index = i)
 
-# Falls Ausgabefolder noch nicht existiert, erstellen
-os.makedirs(output_folder, exist_ok=True)
+        if translated is None:
+            skipped_count +=1
+            continue  # war schon deutsch
+        
+        if skipped:
+            skipped_count += 1
+        else:
+            print(f"✅ Review {i} translated.")
 
-# Statistik
-start_time = time.time()
-reviewsum = 0
-total_recommended = 0
-total_not_recommended = 0
+        results.append({
+            "Recommended": review.get("voted_up"),
+            "PlayTime": review.get("author", {}).get("playtime_forever", 0),
+            "Timestamp": review.get("timestamp_created", 0),
+            "Original": text,
+            "Übersetzung": translated            
+        })
 
-# Alle Dateien im Originals-Ordner durchgehen
-for filename in os.listdir(input_folder):
-    if filename.endswith(".csv"):
-        print(f"🔵 Verarbeite Datei: {filename}")
+        translated_count +=1
 
-        input_path = os.path.join(input_folder, filename)
-        output_path = os.path.join(output_folder, "translated_" + filename)
+    if input("💾 Save? (y/n): ").lower() == "y":
+        df = pd.DataFrame(results)
+        df.to_csv(f"translations/{game_id}_translated.csv", index=False)
+        print(f"✅ File saved to: translations/{game_id}_translated.csv")
+    else:
+        print("❌ Not saved.")
 
-        df = pd.read_csv(input_path, usecols=["PlayTimeTotal", "Recommended", "Timestamp Created", "ReviewText"])
-        total_reviews = len(df)
+    end_time = time.time()
+    duration = round(end_time - start_time, 2)
 
-        # Resümee-Zähler initialisieren
-        translated_reviews = 0
-        skipped_reviews = 0
-        errors = 0
-        recommended = 0
-        not_recommended = 0
+    print("\n" + "=" * 70)
+    print(f"📊 Translation Summary for App-ID: {game_id}")
+    print(f"   - Total reviews loaded: {len(reviews)}")
+    print(f"   - Translated: {translated_count}")
+    print(f"   - Skipped (German): {skipped_count}")
+    print(f"   - Duration: {duration} seconds")
+    print("=" * 70 + "\n")
 
-        def clean_html(raw_text):
-            cleanr = re.compile('<.*?>')
-            cleaned_text = re.sub(cleanr, '', raw_text)
-            bbcode = re.compile(r'\[.*?\]')
-            cleaned_text = re.sub(bbcode, '', cleaned_text)
-            return cleaned_text
+    append_log(f"App-ID: {game_id}")
+    append_log(f"Total reviews: {len(reviews)}")
+    append_log(f"Translated: {translated_count}")
+    append_log(f"Skipped: {skipped_count}")
+    append_log(f"Duration: {duration} Sekunden\n")
 
-        def translate_text(text, index):
-            global translated_reviews, skipped_reviews, errors, reviewsum
-
-            reviewsum += 1
-
-            if not isinstance(text, str) or text.strip() == "":
-                print(f"⚠️ Überspringe Review {index + 1}: Kein Text vorhanden.")
-                skipped_reviews += 1
-                return ""
-
-            try:
-                cleaned_text = clean_html(text)
-
-                if not cleaned_text.strip():
-                    print(f"⚠️ Überspringe Review {index + 1}: Nach Cleaning leer.")
-                    skipped_reviews += 1
-                    return ""
-
-                if len(cleaned_text) > 4900:
-                    print(f"⚠️ Review {index + 1} ist zu lang ({len(cleaned_text)} Zeichen). Text wird abgeschnitten.")
-                    cleaned_text = cleaned_text[:4900]
-
-                if not cleaned_text.strip():
-                    print(f"⚠️ Review {index + 1}: Nach Kürzen leer. Überspringe.")
-                    skipped_reviews += 1
-                    return ""
-
-                 # ➡ Sprache erkennen, um DE zu überspringen
-                detected_lang = google_translator.detect(cleaned_text).lang
-                if detected_lang == 'de':
-                    print(f"⚠️ Überspringe Review {index + 1}: Bereits Deutsch erkannt.")
-                    skipped_reviews += 1
-                    return cleaned_text
-
-                # Jetzt DeepL-Übersetzung in einem Try
-                try:
-                    result = deepl_translator.translate_text(cleaned_text, target_lang="DE").text
-                except Exception as e:
-                    print(f"⚠️ DeepL-Übersetzungsfehler bei Review {index + 1}: {e}")
-                    errors += 1
-                    return ""
-
-                print(f"✅ Review {index + 1} von {total_reviews} übersetzt.")
-                translated_reviews += 1
-                return result
-
-            except Exception as e:
-                print(f"⚠️ Allgemeiner Fehler bei Review {index + 1}: {e}")
-                errors += 1
-                return ""
-
-        # Neue Spalte für Übersetzungen erzeugen
-        df["TranslatedReview"] = [
-            translate_text(row["ReviewText"], idx) if pd.notna(row["ReviewText"]) else ""
-            for idx, row in df.iterrows()
-        ]
-
-        # Empfehlungen zählen
-        for index, row in df.iterrows():
-            if row["Recommended"]:
-                total_recommended += 1
-                recommended += 1
-            else:
-                total_not_recommended += 1
-                not_recommended += 1
-
-        # Original-Review-Spalten entfernen
-        df = df.drop(columns=["Recommended", "ReviewText"])
-
-        # Übersetzte Datei speichern
-        df.to_csv(output_path, index=False)
-        print(f"✅ Übersetzt und gespeichert: {output_path}")
-
-        # Resümee für diese Datei
-        print("\n📋 Resümee für Datei:", filename)
-        print(f"   - Reviews gesamt: {total_reviews}")
-        print(f"   - Erfolgreich übersetzt: {translated_reviews}")
-        print(f"   - Übersprungen: {skipped_reviews}")
-        print(f"   - Fehler während Übersetzung: {errors}")
-        print(f"   - Empfohlen: {recommended}")
-        print(f"   - Nicht empfohlen: {not_recommended}\n")
-
-        with open(logfile_path, "a", encoding="utf-8") as logfile:
-            logfile.write(f"📋 Resümee für Datei: {filename}\n")
-            logfile.write(f"   - Reviews gesamt: {total_reviews}\n")
-            logfile.write(f"   - Erfolgreich übersetzt: {translated_reviews}\n")
-            logfile.write(f"   - Übersprungen: {skipped_reviews}\n")
-            logfile.write(f"   - Fehler während Übersetzung: {errors}\n")
-            logfile.write(f"   - Empfohlen: {recommended}\n")
-            logfile.write(f"   - Nicht empfohlen: {not_recommended}\n\n")
-
-
-
-# Abschlussstatistik
-end_time = time.time()
-duration = end_time - start_time
-
-print(f"\n🎉 Alle Dateien verarbeitet! Gesamtreviews: {reviewsum}, Gesamtdauer: {round(duration, 2)} Sekunden")
-print(f"     Empfohlen: {total_recommended}, nicht empfohlen: {total_not_recommended}")
-
-with open(logfile_path, "a", encoding="utf-8") as logfile:
-    logfile.write("\n🎉 Alle Dateien verarbeitet!\n")
-    logfile.write(f"Gesamtreviews: {reviewsum}\n")
-    logfile.write(f"Gesamtdauer: {round(duration, 2)} Sekunden\n")
-    logfile.write(f"Empfohlen: {total_recommended}\n")
-    logfile.write(f"Nicht empfohlen: {total_not_recommended}\n")
+if __name__ == "__main__":
+    main()
