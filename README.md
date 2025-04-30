@@ -61,9 +61,11 @@ python translate_reviews.py
 
 6. Decide whether to translate and/or save the result
 
-7. A .csv file will be saved in the /translations/ folder (if selected)
+![Py Steam Reviews Reviews Loaded](assets/py_steam_review_reviews_loaded.PNG)
 
-8. A logfile (translation_log.txt) will track your session
+8. A .csv file will be saved in the /translations/ folder (if selected)
+
+9. A logfile (translation_log.txt) will track your session
 
 The translated files will be saved into the translations/ folder.
 A detailed log file (translation_log.txt) will also be generated automatically.
