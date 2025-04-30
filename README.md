@@ -6,12 +6,16 @@
 
 ## Features
 
-- Automatically translates Steam reviews into German using the DeepL API
-- Detects and skips reviews that are already written in German
-- Removes HTML and BBCode tags from the review texts
-- Handles very long reviews (cut off at 4900 characters if necessary)
-- Detailed logging of all results into a log file
-- Provides statistics on recommended and not recommended reviews
+- Input for a specific Steam game ID
+- Automatic download of all available reviews via the Steam API
+- Optional review limit (`all` or custom number)
+- Language detection via `langdetect` to skip German reviews
+- Translation via DeepL (DeepL API Key needed)
+- Cleans HTML and BBCode from reviews before processing
+- Optional CSV export of translated reviews
+- Colored and stylized terminal output (ASCII banner + loading bar)
+- Modular structure (banner, API fetcher, translation, logging)
+- Logfile with per-run statistics
 
 ---
 
@@ -20,9 +24,10 @@
 - Python 3.12 or newer
 - Installed Python packages:
   - `pandas`
-  - `deepl`
-  - `googletrans`
-  - `python-dotenv`
+  - `requests`
+  - `deep_translator`
+  - `langdetect`
+  - `python-dotenv` (optional if you use DeepL)
 
 ---
 
@@ -42,22 +47,40 @@ pip install pandas deepl googletrans python-dotenv
 DEEPL_API_KEY=your_api_key_here
 ```
 
-2. Place your CSV files with Steam reviews inside the originals/ folder.
-
-3. Run the script:
+2. Run the script:
 
 ``` bash
 python translate_reviews.py
 ```
 
+3. Enter a valid Steam App ID (e.g., 730 for CS:GO)
+
+4. Choose how many reviews to fetch (all or a number)
+
+5. Decide whether to translate and/or save the result
+
+6. A .csv file will be saved in the /translations/ folder (if selected)
+
+7. A logfile (translation_log.txt) will track your session
+
 The translated files will be saved into the translations/ folder.
 A detailed log file (translation_log.txt) will also be generated automatically.
 
 ---
+```bash
+🎯 Ready for Steam review translation!
+
+Enter the Steam game ID: 730
+Amount of Reviews (all or number): 20
+
+✅ Review 1 translated.
+⚠️ Skipping review 2 as it is already in German.
+...
+✅ File saved to: translations/730_translated.csv
+```
+---
 
 ## Future Improvements:
-
-- Direct Steam review fetching via the Steam API
 
 - Web interface for easier interaction
 
