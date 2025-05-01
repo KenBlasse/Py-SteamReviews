@@ -28,6 +28,7 @@
   - `deep_translator`
   - `langdetect`
   - `python-dotenv`
+  - `uuid`
 
 ---
 
