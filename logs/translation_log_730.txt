@@ -1,0 +1,10 @@
+Übersetzungs-Log für App-ID 730 gestartet am 2025-05-01 21:27:14
+
+App-ID: 730
+Total reviews: 10
+Translated: 10
+Skipped: 0
+Duration: 6.53 Sekunden
+
+Errors: 0
+

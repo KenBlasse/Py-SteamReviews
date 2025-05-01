@@ -1,2 +1,8 @@
-Übersetzungs-Log gestartet am 2025-04-30 12:06:48
+Übersetzungs-Log gestartet am 2025-04-30 13:16:00
+
+App-ID: 730
+Total reviews: 5
+Translated: 4
+Skipped: 1
+Duration: 10.95 Sekunden
 

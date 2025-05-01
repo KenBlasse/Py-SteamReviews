@@ -6,12 +6,15 @@ from logger_utils import init_logfile, append_log
 
 import time
 import pandas as pd
+
+
+
 def main():
     print_banner()
-    
-    init_logfile()
 
     game_id = input("🎮 Input game app ID: ").strip()
+
+    logfile_path = init_logfile(game_id)
 
     limit_input = input("Amount of Reviews (all or number): ").strip()
     if limit_input == "all":
@@ -39,30 +42,31 @@ def main():
     start_time = time.time()
     translated_count = 0
     skipped_count = 0
+    error_count = 0
 
     results = []
+
     for i, review in enumerate(reviews, 1):
         text = review.get("review", "")
-        translated, skipped = translate_text(text, index = i)
+        translated, skipped = translate_text(text, index=i)
 
         if translated is None:
-            skipped_count +=1
-            continue  # war schon deutsch
-        
-        if skipped:
-            skipped_count += 1
-        else:
-            print(f"✅ Review {i} translated.")
+            if skipped:
+                skipped_count += 1
+            else:
+                error_count += 1
+            continue  # außerhalb der inneren if/else – überspringen
+
+    # Nur wenn wirklich übersetzt wurde:
+        translated_count += 1
+        print(f"✅ Review {i} translated.")
 
         results.append({
             "Recommended": review.get("voted_up"),
             "PlayTime": review.get("author", {}).get("playtime_forever", 0),
             "Timestamp": review.get("timestamp_created", 0),
-            "Original": text,
-            "Übersetzung": translated            
+            "Übersetzung": translated
         })
-
-        translated_count +=1
 
     if input("💾 Save? (y/n): ").lower() == "y":
         df = pd.DataFrame(results)
@@ -80,13 +84,15 @@ def main():
     print(f"   - Translated: {translated_count}")
     print(f"   - Skipped (German): {skipped_count}")
     print(f"   - Duration: {duration} seconds")
+    print(f"   - Errors during translation: {error_count}")
     print("=" * 70 + "\n")
 
-    append_log(f"App-ID: {game_id}")
-    append_log(f"Total reviews: {len(reviews)}")
-    append_log(f"Translated: {translated_count}")
-    append_log(f"Skipped: {skipped_count}")
-    append_log(f"Duration: {duration} Sekunden\n")
+    append_log(logfile_path, f"App-ID: {game_id}")
+    append_log(logfile_path, f"Total reviews: {len(reviews)}")
+    append_log(logfile_path, f"Translated: {translated_count}")
+    append_log(logfile_path, f"Skipped: {skipped_count}")
+    append_log(logfile_path, f"Duration: {duration} Sekunden\n")
+    append_log(logfile_path, f"Errors: {error_count}\n")
 
 if __name__ == "__main__":
     main()
