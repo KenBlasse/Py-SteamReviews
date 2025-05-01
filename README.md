@@ -10,7 +10,7 @@
 - Automatic download of all available reviews via the Steam API
 - Optional review limit (`all` or custom number), invalid input will set review limit to 100!
 - Language detection via `langdetect` to skip German reviews
-- Translation via DeepL (DeepL API Key needed, Limit: 500k characters/month)
+- Translation via Azure (Key needed)
 - Cleans HTML and BBCode from reviews before processing
 - Optional CSV export of translated reviews
 - Colored and stylized terminal output (ASCII banner + loading bar)
@@ -44,7 +44,8 @@ pip install pandas deepl googletrans python-dotenv
 1. Create a .env file and add your DeepL API key:
 
 ```env
-DEEPL_API_KEY=your_api_key_here
+AZURE_KEY=your_api_key_here
+AZURE_REGION=your_region_here
 ```
 
 2. Run the script:
