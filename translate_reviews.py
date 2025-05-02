@@ -77,15 +77,12 @@ def main():
 
     if input("💾 Save? (y/n): ").lower() == "y":
         df = pd.DataFrame(results)
-        df.to_csv(
-            f"translations/{game_id}_translated.csv",
-            index=False,
-            sep=";", 
-            quoting=csv.QUOTE_ALL, 
-            encoding='utf-8'
+        df.to_excel(
+            f"translations/{game_id}_translated.xlsx",
+            index=False
         )
 
-        print(f"✅ File saved to: translations/{game_id}_translated.csv")
+        print(f"✅ File saved to: translations/{game_id}_translated.xlsx")
     else:
         print("❌ Not saved.")
 
