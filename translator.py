@@ -24,6 +24,7 @@ headers = {
 def clean_text(text: str) -> str:
     text = re.sub(r'<.*?>', '', text)
     text = re.sub(r'\[.*?\]', '', text)
+    text = text.replace("\n", " ").replace("\r", " ")
     return text.strip()
 
 def translate_text(text: str, index: int) -> tuple[str | None, bool]:

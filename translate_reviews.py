@@ -4,6 +4,7 @@ from steam_api_utils import fetch_reviews_from_api
 from translator import translate_text
 from logger_utils import init_logfile, append_log
 
+import csv
 import time
 import pandas as pd
 
@@ -53,6 +54,12 @@ def main():
         if translated is None:
             if skipped:
                 skipped_count += 1
+                results.append({
+                    "Recommended": review.get("voted_up"),
+                    "PlayTime": review.get("author", {}).get("playtime_forever", 0),
+                    "Timestamp": review.get("timestamp_created", 0),
+                    "Übersetzung": text  # ← Originaltext als "Übersetzung" übernehmen
+                })
             else:
                 error_count += 1
             continue  # außerhalb der inneren if/else – überspringen
@@ -70,7 +77,14 @@ def main():
 
     if input("💾 Save? (y/n): ").lower() == "y":
         df = pd.DataFrame(results)
-        df.to_csv(f"translations/{game_id}_translated.csv", index=False)
+        df.to_csv(
+            f"translations/{game_id}_translated.csv",
+            index=False,
+            sep=";", 
+            quoting=csv.QUOTE_ALL, 
+            encoding='utf-8'
+        )
+
         print(f"✅ File saved to: translations/{game_id}_translated.csv")
     else:
         print("❌ Not saved.")

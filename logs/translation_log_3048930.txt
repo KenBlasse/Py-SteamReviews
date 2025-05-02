@@ -1,0 +1,10 @@
+Übersetzungs-Log für App-ID 3048930 gestartet am 2025-05-02 09:21:31
+
+App-ID: 3048930
+Total reviews: 10
+Translated: 10
+Skipped: 0
+Duration: 6.2 Sekunden
+
+Errors: 0
+
