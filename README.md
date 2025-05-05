@@ -12,7 +12,7 @@
 - Language detection via `langdetect` to skip German reviews
 - Translation via Azure (Key needed)
 - Cleans HTML and BBCode from reviews before processing
-- Optional CSV export of translated reviews
+- Optional XLSX export of translated reviews
 - Colored and stylized terminal output (ASCII banner + loading bar)
 - Modular structure (banner, API fetcher, translation, logging)
 - Logfile with per-run statistics
@@ -29,13 +29,14 @@
   - `langdetect`
   - `python-dotenv`
   - `uuid`
+  - `openpyxl`
 
 ---
 
 ## Install the required packages using:
 
 ```bash
-pip install pandas deepl googletrans python-dotenv
+pip install pandas deepl googletrans python-dotenv uuid openpyxl
 ```
 
 ---
@@ -65,7 +66,7 @@ python translate_reviews.py
 
 ![Py Steam Reviews Reviews Loaded](assets/py_steam_review_reviews_loaded.PNG)
 
-8. A .csv file will be saved in the /translations/ folder (if selected)
+8. A .xlsx file will be saved in the /translations/ folder (if selected)
 
 9. A logfile (translation_log.txt) will track your session
 
@@ -82,7 +83,7 @@ Amount of Reviews (all or number): 20
 ✅ Review 1 translated.
 ⚠️ Skipping review 2 as it is already in German.
 ...
-✅ File saved to: translations/730_translated.csv
+✅ File saved to: translations/730_translated.xlsx
 ```
 ---
 
