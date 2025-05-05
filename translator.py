@@ -3,6 +3,9 @@ import requests
 import uuid
 from langdetect import detect
 import re
+import time
+import random
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -48,7 +51,11 @@ def translate_text(text: str, index: int) -> tuple[str | None, bool]:
         response = requests.post(url, headers=headers, json=body)
         response.raise_for_status()
         translation = response.json()[0]['translations'][0]['text']
+        time.sleep(random.uniform(0.3, 0.7))
         return translation, False
     except Exception as e:
         print(f"⚠️ Azure Translation error at review {index}: {e}")
+        time.sleep(random.uniform(0.3, 0.7))
         return None, False
+    
+    

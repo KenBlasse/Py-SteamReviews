@@ -1,2 +1,10 @@
-Übersetzungs-Log für App-ID 2780710 gestartet am 2025-05-02 10:05:05
+Übersetzungs-Log für App-ID 2780710 gestartet am 2025-05-02 11:52:55
+
+App-ID: 2780710
+Total reviews: 648
+Translated: 437
+Skipped: 210
+Duration: 638.72 Sekunden
+
+Errors: 1
 
